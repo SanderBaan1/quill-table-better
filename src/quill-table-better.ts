@@ -20,7 +20,7 @@ import {
   TableColgroup
 } from './formats/table';
 import TableHeader from './formats/header';
-import { ListContainer } from './formats/list';
+import TableList, { ListContainer } from './formats/list';
 import { 
   matchTable,
   matchTableCell,
@@ -63,7 +63,9 @@ class Table extends Module {
   
   static keyboardBindings: { [propName: string]: BindingObject };
 
+  private static formatsRegistered = false;
   static register() {
+    if (Table.formatsRegistered) return;
     Quill.register(TableCellBlock, true);
     Quill.register(TableThBlock, true);
     Quill.register(TableCell, true);
@@ -78,8 +80,12 @@ class Table extends Module {
     Quill.register(TableColgroup, true);
     Quill.register({
       'modules/toolbar': TableToolbar,
-      'modules/clipboard': TableClipboard
+      'modules/clipboard': TableClipboard,
+      'formats/table-header': TableHeader,
+      'formats/table-list': TableList,
+      'formats/table-better': ToolbarTable
     }, true);
+    Table.formatsRegistered = true;
   }
   
   constructor(quill: Quill, options: Options) {
@@ -280,7 +286,6 @@ class Table extends Module {
 
   private registerToolbarTable(toolbarTable: boolean) {
     if (!toolbarTable) return;
-    Quill.register({ 'formats/table-better': ToolbarTable }, true);
     const toolbar = this.quill.getModule('toolbar') as TableToolbar;
     const button = toolbar.container.querySelector('button.ql-table-better');
     if (!button || !this.tableSelect.root) return;

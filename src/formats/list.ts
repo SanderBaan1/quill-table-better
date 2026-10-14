@@ -134,8 +134,11 @@ class TableList extends List {
     return null;
   }
 
+  private static formatsRegistered = false;
   static register() {
+    if (TableList.formatsRegistered) return;
     Quill.register(ListContainer);
+    TableList.formatsRegistered = true;
   }
 
   setReplace(isReplace: boolean, formats: Props) {
@@ -148,10 +151,6 @@ class TableList extends List {
 }
 TableList.blotName = 'table-list';
 TableList.className = 'table-list';
-
-Quill.register({
-  'formats/table-list': TableList
-}, true);
 
 ListContainer.allowedChildren = [TableList];
 TableList.requiredContainer = ListContainer;
