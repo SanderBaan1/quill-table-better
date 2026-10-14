@@ -25,6 +25,7 @@ import {
   TableThRow
 } from '../formats/table';
 import { DEVIATION } from '../config';
+import GlobalEventsRegistry from '../utils/global-event-registry';
 
 const WHITE_LIST = [
   'bold',
@@ -396,10 +397,12 @@ class CellSelection {
   }
 
   initDocumentListener() {
-    document.addEventListener('copy', (e: ClipboardEvent) => this.onCaptureCopy(e, false), { signal: this.abortController.signal });
-    document.addEventListener('cut', (e: ClipboardEvent) => this.onCaptureCopy(e, true), { signal: this.abortController.signal });
-    document.addEventListener('keyup', this.handleDeleteKeyup.bind(this), { signal: this.abortController.signal });
-    document.addEventListener('paste', this.onCapturePaste.bind(this), { signal: this.abortController.signal });
+    GlobalEventsRegistry.registerNewInstance(this.quill, new Map<string, ((event: Event) => void)>([
+      ['copy', (e: Event) => this.onCaptureCopy(e as ClipboardEvent, false)],
+      ['cut', (e: Event) => this.onCaptureCopy(e as ClipboardEvent, true)],
+      ['keyup', (e: Event) => this.handleDeleteKeyup(e as KeyboardEvent)],
+      ['paste', (e: Event) => this.onCapturePaste(e as ClipboardEvent)]
+    ]), null, this.onExitFocus.bind(this));
   }
 
   initWhiteList() {
@@ -784,7 +787,7 @@ class CellSelection {
           const target =
             this.endTd.nextElementSibling ||
             this.startTd.previousElementSibling;
-          if (!target) return this.tableBetter.hideTools();;
+          if (!target) return this.tableBetter.hideTools();
           this.setSelected(target);
         }
         break;
@@ -813,6 +816,10 @@ class CellSelection {
       default:
         break;
     }
+  }
+
+  onExitFocus(event: MouseEvent): void {
+    this.tableBetter.hideTools();
   }
 }
 

@@ -35,6 +35,7 @@ import ToolbarTable, { TableSelect } from './ui/toolbar-table';
 import { getCellId, getCorrectCellBlot } from './utils';
 import TableToolbar from './modules/toolbar';
 import TableClipboard from './modules/clipboard';
+import globalEventsRegistry from './utils/global-event-registry';
 
 interface Options {
   language?: string | {
@@ -123,6 +124,8 @@ class Table extends Module {
     if (toolbar) {
       toolbar.destroy();
     }
+
+    globalEventsRegistry.unregisterInstance(this.quill);
   }
 
   clearHistorySelected() {
