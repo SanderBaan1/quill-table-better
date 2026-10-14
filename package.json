@@ -1,6 +1,6 @@
 {
   "name": "@sanderbaan1/quill-table-better",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Fork of attoae/quill-table-better which resolves issues with redundant event listeners, memory leaks in SPA, format registration pollution, null safety fixes and more. Slightly based on fork of sd-vk",
   "main": "dist/quill-table-better.js",
   "types": "dist/types/index.d.ts",
@@ -52,6 +52,9 @@
     "@types/lodash.merge": "^4.6.7",
     "lodash.merge": "^4.6.2",
     "webpack-merge": "^5.8.0"
+  },
+  "overrides": {
+    "preact": "10.28.2"
   },
   "browserslist": [
     "last 1 version",
