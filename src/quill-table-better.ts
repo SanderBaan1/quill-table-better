@@ -62,6 +62,7 @@ class Table extends Module {
   options: Options;
   
   static keyboardBindings: { [propName: string]: BindingObject };
+  private abortController = new AbortController();
 
   private static formatsRegistered = false;
   static register() {
@@ -99,11 +100,29 @@ class Table extends Module {
     this.operateLine = new OperateLine(quill, this);
     this.tableMenus = new TableMenus(quill, this);
     this.tableSelect = new TableSelect();
-    quill.root.addEventListener('keyup', this.handleKeyup.bind(this));
-    quill.root.addEventListener('mousedown', this.handleMousedown.bind(this));
-    quill.root.addEventListener('scroll', this.handleScroll.bind(this));
+    quill.root.addEventListener('keyup', this.handleKeyup.bind(this), { signal: this.abortController.signal });
+    quill.root.addEventListener('mousedown', this.handleMousedown.bind(this), { signal: this.abortController.signal });
+    quill.root.addEventListener('scroll', this.handleScroll.bind(this), { signal: this.abortController.signal });
     this.listenDeleteTable();
     this.registerToolbarTable(options?.toolbarTable);
+  }
+
+  /**
+   * Destroy the module and clean up resources
+   * This should be called when the Quill instance is being destroyed
+   */
+  destroy(): void {
+    this.abortController.abort();
+
+    this.cellSelection.destroy();
+    this.operateLine.destroy();
+    this.tableMenus.destroy();
+    this.tableSelect.destroy();
+
+    const toolbar = this.quill.getModule('toolbar') as TableToolbar;
+    if (toolbar) {
+      toolbar.destroy();
+    }
   }
 
   clearHistorySelected() {
@@ -207,8 +226,8 @@ class Table extends Module {
       this.quill.root.removeEventListener('mouseup', handleMouseup);
     }
 
-    this.quill.root.addEventListener('mousemove', handleMouseMove);
-    this.quill.root.addEventListener('mouseup', handleMouseup);
+    this.quill.root.addEventListener('mousemove', handleMouseMove, { signal: this.abortController.signal });
+    this.quill.root.addEventListener('mouseup', handleMouseup, { signal: this.abortController.signal });
   }
 
   handleScroll() {
@@ -292,14 +311,14 @@ class Table extends Module {
     button.appendChild(this.tableSelect.root);
     button.addEventListener('click', (e: MouseEvent) => {
       this.tableSelect.handleClick(e, this.insertTable.bind(this));
-    });
+    }, { signal: this.abortController.signal });
     document.addEventListener('click', (e: MouseEvent) => {
       const visible = e.composedPath().includes(button);
       if (visible) return;
       if (!this.tableSelect.root.classList.contains('ql-hidden')) {
         this.tableSelect.hide(this.tableSelect.root);
       }
-    });
+    }, { signal: this.abortController.signal });
   }
 
   showTools(force?: boolean) {

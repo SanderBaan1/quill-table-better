@@ -14,9 +14,14 @@ class ToolbarTable extends Inline {};
 class TableSelect {
   computeChildren: Element[];
   root: HTMLDivElement;
+  private abortController = new AbortController();
   constructor() {
     this.computeChildren = [];
     this.root = this.createContainer();
+  }
+
+  destroy() {
+    this.abortController.abort();
   }
 
   clearSelected(children: NodeListOf<Element> | Element[]) {
@@ -47,7 +52,7 @@ class TableSelect {
     list.appendChild(fragment);
     container.appendChild(list);
     container.appendChild(label);
-    container.addEventListener('mousemove', e => this.handleMouseMove(e, container));
+    container.addEventListener('mousemove', e => this.handleMouseMove(e, container), { signal: this.abortController.signal });
     return container;
   }
 

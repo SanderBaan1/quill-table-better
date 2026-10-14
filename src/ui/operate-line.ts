@@ -34,6 +34,7 @@ class OperateLine {
   dragTable: HTMLElement | null;
   direction: string | null;
   tableBetter: QuillTableBetter;
+  private abortController = new AbortController();
   constructor(quill: Quill, tableBetter?: QuillTableBetter) {
     this.quill = quill;
     this.options = null;
@@ -43,7 +44,11 @@ class OperateLine {
     this.dragTable = null;
     this.direction = null; // 1.level 2.vertical
     this.tableBetter = tableBetter;
-    this.quill.root.addEventListener('mousemove', this.handleMouseMove.bind(this));
+    this.quill.root.addEventListener('mousemove', this.handleMouseMove.bind(this), { signal: this.abortController.signal });
+  }
+
+  destroy() {
+    this.abortController.abort();
   }
 
   createDragBlock() {
@@ -409,10 +414,10 @@ class OperateLine {
         }
       }
       this.drag = true;
-      document.addEventListener('mousemove', handleDrag);
-      document.addEventListener('mouseup', handleMouseup);
+      document.addEventListener('mousemove', handleDrag, { signal: this.abortController.signal });
+      document.addEventListener('mouseup', handleMouseup, { signal: this.abortController.signal });
     }
-    node.addEventListener('mousedown', handleMousedown);
+    node.addEventListener('mousedown', handleMousedown, { signal: this.abortController.signal });
   }
 
   updateDragBlock(clientX: number, clientY: number) {

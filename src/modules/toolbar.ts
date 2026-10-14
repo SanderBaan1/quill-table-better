@@ -25,7 +25,12 @@ class TableToolbar extends Toolbar {
   controls: [string, HTMLElement][];
   update: (range: Range | null) => void;
   container?: HTMLElement | null;
-  
+  private abortController = new AbortController();
+
+  destroy() {
+    this.abortController.abort();
+  }
+
   attach(input: HTMLElement) {
     let format = Array.from(input.classList).find((className) => {
       return className.indexOf('ql-') === 0;
@@ -50,7 +55,7 @@ class TableToolbar extends Toolbar {
       } else {
         this.toolbarAttach(input, format, e);
       }
-    });
+    }, { signal: this.abortController.signal });
     this.controls.push([format, input]);
   }
 

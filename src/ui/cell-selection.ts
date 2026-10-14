@@ -60,6 +60,7 @@ class CellSelection {
   disabledList: Array<HTMLElement | Element>;
   singleList: Array<HTMLElement | Element>;
   tableBetter: QuillTableBetter;
+  private abortController = new AbortController();
   constructor(quill: Quill, tableBetter: QuillTableBetter) {
     this.quill = quill;
     this.selectedTds = [];
@@ -68,9 +69,13 @@ class CellSelection {
     this.disabledList = [];
     this.singleList = [];
     this.tableBetter = tableBetter;
-    this.quill.root.addEventListener('click', this.handleClick.bind(this));
+    this.quill.root.addEventListener('click', this.handleClick.bind(this), { signal: this.abortController.signal });
     this.initDocumentListener();
     this.initWhiteList();
+  }
+
+  destroy() {
+    this.abortController.abort();
   }
 
   attach(input: HTMLElement) {
@@ -380,8 +385,8 @@ class CellSelection {
       this.quill.root.removeEventListener('mouseup', handleMouseup);
     }
 
-    this.quill.root.addEventListener('mousemove', handleMouseMove);
-    this.quill.root.addEventListener('mouseup', handleMouseup);
+    this.quill.root.addEventListener('mousemove', handleMouseMove, { signal: this.abortController.signal });
+    this.quill.root.addEventListener('mouseup', handleMouseup, { signal: this.abortController.signal });
   }
 
   hasTdTh(selectedTds: Element[]) {
@@ -391,10 +396,10 @@ class CellSelection {
   }
 
   initDocumentListener() {
-    document.addEventListener('copy', (e: ClipboardEvent) => this.onCaptureCopy(e, false));
-    document.addEventListener('cut', (e: ClipboardEvent) => this.onCaptureCopy(e, true));
-    document.addEventListener('keyup', this.handleDeleteKeyup.bind(this));
-    document.addEventListener('paste', this.onCapturePaste.bind(this));
+    document.addEventListener('copy', (e: ClipboardEvent) => this.onCaptureCopy(e, false), { signal: this.abortController.signal });
+    document.addEventListener('cut', (e: ClipboardEvent) => this.onCaptureCopy(e, true), { signal: this.abortController.signal });
+    document.addEventListener('keyup', this.handleDeleteKeyup.bind(this), { signal: this.abortController.signal });
+    document.addEventListener('paste', this.onCapturePaste.bind(this), { signal: this.abortController.signal });
   }
 
   initWhiteList() {

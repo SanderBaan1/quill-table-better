@@ -94,6 +94,7 @@ class TablePropertiesForm {
   borderForm: HTMLElement[];
   saveButton: HTMLButtonElement;
   form: HTMLDivElement;
+  private abortController = new AbortController();
   constructor(tableMenus: TableMenus, options?: Options) {
     this.tableMenus = tableMenus;
     this.options = options;
@@ -101,6 +102,10 @@ class TablePropertiesForm {
     this.borderForm = [];
     this.saveButton = null;
     this.form = this.createPropertiesForm(options);
+  }
+
+  destroy() {
+    this.abortController.abort();
   }
 
   checkBtnsAction(status: string) {
@@ -130,7 +135,7 @@ class TablePropertiesForm {
       }
       fragment.appendChild(button);
     }
-    container.addEventListener('click', e => listener(e));
+    container.addEventListener('click', e => listener(e), { signal: this.abortController.signal });
     container.appendChild(fragment);
     return container;
   }
@@ -160,7 +165,7 @@ class TablePropertiesForm {
       const value = target.getAttribute('data-align');
       this.switchButton(container, target);
       this.setAttribute(propertyName, value);
-    });
+    }, { signal: this.abortController.signal });
     return container;
   }
 
@@ -204,7 +209,7 @@ class TablePropertiesForm {
       ).getAttribute('data-color');
       this.setAttribute(propertyName, value, container);
       this.updateInputStatus(container, false, true);
-    });
+    }, { signal: this.abortController.signal });
     return container;
   }
 
@@ -225,7 +230,7 @@ class TablePropertiesForm {
       const colorContainer = this.getColorClosest(container);
       const input: HTMLInputElement = colorContainer?.querySelector('.property-input');
       this.updateSelectedStatus(select, input?.value, 'color');
-    });
+    }, { signal: this.abortController.signal });
     container.appendChild(colorButton);
     container.appendChild(select);
     return container;
@@ -241,7 +246,7 @@ class TablePropertiesForm {
     container.classList.add('erase-container');
     container.appendChild(icon);
     container.appendChild(button);
-    container.addEventListener('click', listener);
+    container.addEventListener('click', listener, { signal: this.abortController.signal });
     return container;
   }
 
@@ -307,7 +312,7 @@ class TablePropertiesForm {
       valid && this.switchHidden(status, valid(value));
       this.updateInputStatus(wrapper, valid && !valid(value));
       this.setAttribute(propertyName, value, container);
-    });
+    }, { signal: this.abortController.signal });
     status.classList.add('label-field-view-status', 'ql-hidden');
     message && (status.innerText = message);
     wrapper.appendChild(input);
@@ -332,7 +337,7 @@ class TablePropertiesForm {
       dropText.innerText = value;
       this.toggleBorderDisabled(value);
       this.setAttribute(propertyName, value);
-    });
+    }, { signal: this.abortController.signal });
     return container;
   }
 
@@ -417,7 +422,7 @@ class TablePropertiesForm {
         dropdown.addEventListener('click', () => {
           this.toggleHidden(list);
           this.updateSelectedStatus(dropdown, dropText.innerText, 'dropdown');
-        });
+        }, { signal: this.abortController.signal });
         return dropdown;
       case 'color':
         const colorContainer = this.createColorContainer(child);
@@ -461,7 +466,7 @@ class TablePropertiesForm {
     container.addEventListener('click', (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       this.hiddenSelectList(target);
-    });
+    }, { signal: this.abortController.signal });
     return container;
   }
 

@@ -281,6 +281,7 @@ class TableMenus {
   tableBetter: QuillTableBetter;
   tablePropertiesForm: TablePropertiesForm;
   tableHeaderRow: HTMLElement | null;
+  private abortController = new AbortController();
   constructor(quill: Quill, tableBetter?: QuillTableBetter) {
     this.quill = quill;
     this.table = null;
@@ -290,8 +291,14 @@ class TableMenus {
     this.tableBetter = tableBetter;
     this.tablePropertiesForm = null;
     this.tableHeaderRow = null;
-    this.quill.root.addEventListener('click', this.handleClick.bind(this));
+    this.quill.root.addEventListener('click', this.handleClick.bind(this), { signal: this.abortController.signal });
     this.root = this.createMenus();
+  }
+
+  destroy() {
+    this.abortController.abort();
+    
+    if (this.tablePropertiesForm) this.tablePropertiesForm.destroy();
   }
 
   convertToRow() {
@@ -391,7 +398,7 @@ class TableMenus {
       } else {
         list.innerText = content;
       }
-      list.addEventListener('click', handler.bind(this));
+      list.addEventListener('click', handler.bind(this), { signal: this.abortController.signal });
       container.appendChild(list);
       if (divider) {
         const dividerLine = document.createElement('li');
@@ -432,7 +439,7 @@ class TableMenus {
       menu.appendChild(tooltip);
       list && menu.appendChild(list);
       container.appendChild(menu);
-      menu.addEventListener('click', handler.bind(this, list, tooltip));
+      menu.addEventListener('click', handler.bind(this, list, tooltip), { signal: this.abortController.signal });
     }
     this.quill.container.appendChild(container);
     return container;
