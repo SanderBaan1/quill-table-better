@@ -60,9 +60,6 @@ function filterWordStyle(s: string) {
 function getAlign(cellBlot: TableCell) {
   const DEFAULT = 'left';
   let align = null;
-  const blocks = cellBlot.descendants(TableCellBlock);
-  const lists = cellBlot.descendants(TableList);
-  const headers = cellBlot.descendants(TableHeader);
   function getChildAlign(child: TableCellChildren): string {
     for (const name of child.domNode.classList) {
       if (/ql-align-/.test(name)) {
@@ -75,6 +72,10 @@ function getAlign(cellBlot: TableCell) {
     if (prev == null) return true;
     return prev === cur;
   }
+  const blocks = cellBlot.descendants(TableCellBlock);
+  const lists = cellBlot.descendants(TableList);
+  const headers = cellBlot.descendants(TableHeader);
+  if (!blocks || !lists || !headers) return DEFAULT;
   for (const child of [...blocks, ...lists, ...headers]) {
     const _align = getChildAlign(child);
     if (isSameValue(align, _align)) {
@@ -130,7 +131,8 @@ function getComputeSelectedCols(
   table: Element,
   container: Element
 ) {
-  const tableParchment = Quill.find(table) as TableContainer;
+  const tableParchment = Quill.find(table) as TableContainer | null;
+  if (!tableParchment) return [];
   const cols = tableParchment.descendants(TableCol);
   let correctLeft = 0;
   return cols.reduce((selectedCols: Element[], col: TableCol) => {
@@ -153,7 +155,8 @@ function getComputeSelectedTds(
   container: Element,
   type?: string
 ): Element[] {
-  const tableParchment = Quill.find(table) as TableContainer;
+  const tableParchment = Quill.find(table) as TableContainer | null;
+  if (!tableParchment) return [];
   const tableCells = tableParchment.descendants(TableCell);
   return tableCells.reduce((selectedTds: Element[], tableCell: TableCell) => {
     const { left, top, width, height } = getCorrectBounds(tableCell.domNode, container);

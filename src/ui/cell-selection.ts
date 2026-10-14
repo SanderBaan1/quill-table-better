@@ -55,8 +55,8 @@ function isLine(blot: unknown): blot is BlockBlot | EmbedBlot {
 class CellSelection {
   quill: Quill;
   selectedTds: Element[];
-  startTd: Element;
-  endTd: Element;
+  startTd: Element | null;
+  endTd: Element | null;
   disabledList: Array<HTMLElement | Element>;
   singleList: Array<HTMLElement | Element>;
   tableBetter: QuillTableBetter;
@@ -120,6 +120,7 @@ class CellSelection {
 
   getCopyColumns(container: Element) {
     const tr = container.querySelector('tr');
+    if (!tr) return 0;
     const children = Array.from(tr.querySelectorAll('td,th'));
     return children.reduce((sum: number, td: HTMLTableCellElement) => {
       const colspan = ~~td.getAttribute('colspan') || 1;
@@ -139,6 +140,7 @@ class CellSelection {
     const map: { [propName: string]: Element[] } = {};
     for (const td of this.selectedTds) {
       const rowId = td.getAttribute('data-row');
+      if (!rowId) continue;
       if (!map[rowId]) {
         map[rowId] = [];
       }
@@ -541,12 +543,12 @@ class CellSelection {
     if (!this.selectedTds?.length) return;
     e.preventDefault();
     const html = e.clipboardData?.getData('text/html');
-    const text = e.clipboardData?.getData('text/plain');
     const container = document.createElement('div');
     container.innerHTML = html;
     const copyRows = Array.from(container.querySelectorAll('tr'));
     if (!copyRows.length) return;
-    const cell = Quill.find(this.startTd) as TableCell;
+    const cell = Quill.find(this.startTd) as TableCell | null;
+    if (!cell) return;
     const row = cell.row();
     const table = cell.table();
     this.quill.history.cutoff();
@@ -607,16 +609,20 @@ class CellSelection {
       0,
       Quill.sources.USER
     );
-    const range = this.quill.getSelection(true);
-    const formats = this.quill.getFormat(range.index) as Props;
     const html = copyTd.innerHTML;
     const text = this.getText(html);
     const pastedDelta = this.quill.clipboard.convert({ text, html });
-    const delta = new Delta()
-      .retain(range.index)
-      .delete(range.length)
-      .concat(applyFormat(pastedDelta, formats));
-    this.quill.updateContents(delta, Quill.sources.USER);
+    const range = this.quill.getSelection(true);
+    if (range) {
+      const formats = this.quill.getFormat(range.index) as Props;
+      const delta = new Delta()
+        .retain(range.index)
+        .delete(range.length)
+        .concat(applyFormat(pastedDelta, formats));
+      this.quill.updateContents(delta, Quill.sources.USER);
+    } else {
+      this.quill.updateContents(pastedDelta, Quill.sources.USER);
+    }
     return _cell;
   }
 
