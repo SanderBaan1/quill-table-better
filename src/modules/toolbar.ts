@@ -28,7 +28,9 @@ class TableToolbar extends Toolbar {
   private abortController = new AbortController();
 
   destroy() {
-    this.abortController.abort();
+    if (this.abortController) {
+      this.abortController.abort();
+    }
   }
 
   attach(input: HTMLElement) {
@@ -48,10 +50,13 @@ class TableToolbar extends Toolbar {
       return;
     }
     const eventName = input.tagName === 'SELECT' ? 'change' : 'click';
+    if (!this.abortController?.signal) {
+      this.abortController = new AbortController();
+    }
     input.addEventListener(eventName, (e) => {
       const tableBetter = this.getTableBetter();
       if (tableBetter?.cellSelection?.selectedTds?.length > 1) {
-        this.cellSelectionAttach(input, format, e, cellSelection);
+        this.cellSelectionAttach(input, format, e, tableBetter?.cellSelection);
       } else {
         this.toolbarAttach(input, format, e);
       }

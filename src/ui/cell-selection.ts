@@ -25,7 +25,7 @@ import {
   TableThRow
 } from '../formats/table';
 import { DEVIATION } from '../config';
-import GlobalEventsRegistry from '../utils/global-event-registry';
+import GlobalEventsRegistry from '../utils/global-events-registry';
 
 const WHITE_LIST = [
   'bold',
@@ -407,6 +407,7 @@ class CellSelection {
 
   initWhiteList() {
     const toolbar = this.quill.getModule('toolbar');
+    if (!toolbar || !toolbar.container) return;
     // @ts-expect-error
     Array.from(toolbar.container.querySelectorAll('button, select')).forEach(
       input => {

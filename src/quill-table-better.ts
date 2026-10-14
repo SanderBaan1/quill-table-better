@@ -35,7 +35,7 @@ import ToolbarTable, { TableSelect } from './ui/toolbar-table';
 import { getCellId, getCorrectCellBlot } from './utils';
 import TableToolbar from './modules/toolbar';
 import TableClipboard from './modules/clipboard';
-import globalEventsRegistry from './utils/global-event-registry';
+import globalEventsRegistry from './utils/global-events-registry';
 
 interface Options {
   language?: string | {
